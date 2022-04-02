@@ -69,7 +69,7 @@ namespace signalrtest.Hubs
                 {
                     await Clients.Clients(players.Select(x => x.ClientId)).SendAsync("grille", _morpionManager.GetGrille(gameId));
                     await Clients.Client(Context.ConnectionId).SendAsync("gameState", MorpionHelper.GameState.WaitOpponent);
-                    await Clients.Client(players.FirstOrDefault(x => x.ClientId != Context.ConnectionId).ClientId).SendAsync("GameState", MorpionHelper.GameState.Play);
+                    await Clients.Client(players.FirstOrDefault(x => x.ClientId != Context.ConnectionId).ClientId).SendAsync("gameState", MorpionHelper.GameState.Play);
                 }
                 else
                 {
