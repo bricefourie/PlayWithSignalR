@@ -19,6 +19,17 @@ namespace signalrtest.Morpion
         private const string PLAYER1TOKEN = "X";
         private const string PLAYER2TOKEN = "O";
 
+        public Morpion()
+        {
+            for (int i = 0; i < _grille.GetLength(0); i++)
+            {
+                for (int j = 0; j < _grille.GetLength(1); j++)
+                {
+                    _grille[i, j] = string.Empty;
+                }
+            }
+        }
+
         private bool CanPlayHere(int x, int y)
         {
             return string.IsNullOrWhiteSpace(_grille[x, y]);
@@ -92,7 +103,7 @@ namespace signalrtest.Morpion
         public string[] GetDiag2(string[,] matrix)
         {
             return Enumerable.Range(0, matrix.GetLength(1))
-                .Select(x => matrix[x, matrix.GetLength(0) - x])
+                .Select(x => matrix[x, (matrix.GetLength(0)-1) - x])
                 .ToArray();
         }
 

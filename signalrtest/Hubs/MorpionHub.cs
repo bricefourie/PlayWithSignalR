@@ -49,6 +49,7 @@ namespace signalrtest.Hubs
                 else
                 {
                     var players = _morpionManager.GetMorpionPlayers(gameId);
+                    await Clients.Client(player.ClientId).SendAsync("gameId", gameId);
                     await Clients.Client(players[0].ClientId).SendAsync("playerToken",MorpionHelper.PLAYER1TOKEN);
                     await Clients.Client(players[1].ClientId).SendAsync("playerToken",MorpionHelper.PLAYER2TOKEN);
                     await Clients.Clients(players.Select(x => x.ClientId)).SendAsync("grille", _morpionManager.GetGrille(gameId));
@@ -65,9 +66,9 @@ namespace signalrtest.Hubs
             var players = _morpionManager.GetMorpionPlayers(gameId);
             if(_morpionManager.PlayerTurn(gameId,players.FirstOrDefault(x => x.ClientId == Context.ConnectionId),x,y))
             {
-                if(!_morpionManager.IsGameOver(gameId))
+                await Clients.Clients(players.Select(x => x.ClientId)).SendAsync("grille", _morpionManager.GetGrille(gameId));
+                if (!_morpionManager.IsGameOver(gameId))
                 {
-                    await Clients.Clients(players.Select(x => x.ClientId)).SendAsync("grille", _morpionManager.GetGrille(gameId));
                     await Clients.Client(Context.ConnectionId).SendAsync("gameState", MorpionHelper.GameState.WaitOpponent);
                     await Clients.Client(players.FirstOrDefault(x => x.ClientId != Context.ConnectionId).ClientId).SendAsync("gameState", MorpionHelper.GameState.Play);
                 }
