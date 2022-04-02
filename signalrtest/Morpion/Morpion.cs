@@ -28,7 +28,7 @@ namespace signalrtest.Morpion
         {
             return player != _lastplayer;
         }
-        private bool IsGameOver()
+        public bool IsGameOver()
         {
             if (Winner() != 0)
             {
@@ -50,16 +50,16 @@ namespace signalrtest.Morpion
             int winner = 0;
             for (int i = 0; i < _grille.GetLength(0); i++)
             {
-                if (AllAreEqual(GetColumn(_grille, i)) && !string.IsNullOrWhiteSpace(_grille[0,i]))
+                if (AllAreEqual(GetColumn(_grille, i)) && !string.IsNullOrWhiteSpace(_grille[0, i]))
                 {
                     return TokenToPlayer(_grille[0, i]);
                 }
-                if (AllAreEqual(GetRow(_grille, i)) && !string.IsNullOrWhiteSpace(_grille[i,0]))
+                if (AllAreEqual(GetRow(_grille, i)) && !string.IsNullOrWhiteSpace(_grille[i, 0]))
                 {
                     return TokenToPlayer(_grille[i, 0]);
                 }
             }
-            if(AllAreEqual(GetDiag(_grille)) || AllAreEqual(GetDiag2(_grille)))
+            if (!string.IsNullOrWhiteSpace(_grille[1,1]) && (AllAreEqual(GetDiag(_grille)) || AllAreEqual(GetDiag2(_grille))))
             {
                 return TokenToPlayer(_grille[1, 1]);
             }
@@ -69,16 +69,18 @@ namespace signalrtest.Morpion
 
         public string[] GetColumn(string[,] matrix, int columnNumber)
         {
-            return Enumerable.Range(0, matrix.GetLength(0))
+            var result = Enumerable.Range(0, matrix.GetLength(0))
                     .Select(x => matrix[x, columnNumber])
                     .ToArray();
+            return result;
         }
 
         public string[] GetRow(string[,] matrix, int rowNumber)
         {
-            return Enumerable.Range(0, matrix.GetLength(1))
+            var result =  Enumerable.Range(0, matrix.GetLength(1))
                     .Select(x => matrix[rowNumber, x])
                     .ToArray();
+            return result;
         }
 
         public string[] GetDiag(string[,] matrix)
@@ -89,8 +91,8 @@ namespace signalrtest.Morpion
         }
         public string[] GetDiag2(string[,] matrix)
         {
-            return Enumerable.Range(0, matrix.GetLength(0))
-                .Select(x => matrix[x,matrix.GetLength(0)-x])
+            return Enumerable.Range(0, matrix.GetLength(1))
+                .Select(x => matrix[x, matrix.GetLength(0) - x])
                 .ToArray();
         }
 
@@ -118,7 +120,7 @@ namespace signalrtest.Morpion
 
         public bool SetToken(int x, int y, int player)
         {
-            if(IsGameOver() || !IsPlayerTurn(player) )
+            if (IsGameOver() || !IsPlayerTurn(player))
             {
                 return false;
             }

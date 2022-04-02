@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
+using signalrtest.Morpion;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,11 +14,13 @@ namespace signalrtest.Hubs
     }
     public class Chathub : Hub
     {
+        private readonly IMorpionManager _morpionManager;
         private readonly ILogger _logger;
 
-        public Chathub(ILogger<Chathub> logger)
+        public Chathub(ILogger<Chathub> logger, IMorpionManager morpionManager)
         {
             _logger = logger;
+            _morpionManager = morpionManager;
         }
         public override async Task OnConnectedAsync()
         {
