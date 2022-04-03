@@ -32,7 +32,7 @@ namespace signalrtest.Morpion
 
         private bool CanPlayHere(int x, int y)
         {
-            return string.IsNullOrWhiteSpace(_grille[x, y]);
+            return x < _grille.GetLength(0) && y <_grille.GetLength(1) && string.IsNullOrWhiteSpace(_grille[x, y]);
         }
 
         private bool IsPlayerTurn(int player)

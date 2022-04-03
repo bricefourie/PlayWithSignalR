@@ -68,6 +68,7 @@ namespace MorpionClient
                  }
                  IsGameOver = true;
              });
+            connection.On<string>(Message.error.ToString(), (error) => Console.WriteLine(error)); 
             await connection.StartAsync();
             Console.WriteLine("Username :");
             var username = Console.ReadLine();

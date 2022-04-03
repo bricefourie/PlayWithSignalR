@@ -16,6 +16,7 @@ namespace signalrtest.Morpion
         MorpionPlayer[] GetMorpionPlayers(Guid GameId);
         bool IsGameOver(Guid GameId);
         string[,] GetGrille(Guid GameId);
+        bool DeleteGame(Guid GameId);
 
     }
     public class MorpionManager : IMorpionManager
@@ -31,11 +32,8 @@ namespace signalrtest.Morpion
             var availableGame =_morpionGames.FirstOrDefault(x => x.Value.Player2 is null);
             if(!availableGame.Equals(default(KeyValuePair<Guid,MorpionGame>)))
             {
-                MorpionGame morpionGame = availableGame.Value;
-                if(_morpionGames.TryUpdate(availableGame.Key,new MorpionGame() {Morpion = morpionGame.Morpion,Player1 = morpionGame.Player1, Player2 = Player },morpionGame))
-                {
-                    return availableGame.Key;
-                }
+                availableGame.Value.Player2 = Player;
+                return availableGame.Key;
             }
             return Guid.Empty;
         }
@@ -129,6 +127,11 @@ namespace signalrtest.Morpion
                 return game.Morpion.grille;
             }
             return new string[3, 3];
+        }
+
+        public bool DeleteGame(Guid GameId)
+        {
+            return _morpionGames.TryRemove(GameId, out var morpionGame);
         }
     }
     class MorpionGame
