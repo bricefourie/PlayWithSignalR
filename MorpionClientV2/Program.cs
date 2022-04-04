@@ -9,13 +9,16 @@ using ConsoleGUI;
 using ConsoleGUI.UserDefined;
 using System.Threading;
 using ConsoleGUI.Api;
+using MorpionClientV2.Managers;
+using System.Threading.Tasks;
 
 namespace MorpionClientV2
 {
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
+            var morpionManager = new MorpionManager();
             var textBox = new TextBox();
             var mainConsole = new LogPanel();
             var tabPanel = new TabPanel();
@@ -91,9 +94,12 @@ namespace MorpionClientV2
             var input = new IInputListener[]
             {
                 board,
+                new InputController(textBox,mainConsole,"Anonymous"),
                 textBox
             };
-            //ConsoleManager.Setup();
+
+            await morpionManager.HubConnection.StartAsync();
+            ConsoleManager.Setup();
             ConsoleManager.Resize(new Size(150, 40));
             ConsoleManager.Content = dockPanel;
             for (int i = 0; ; i++)
