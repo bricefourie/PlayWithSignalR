@@ -75,12 +75,13 @@ namespace signalrtest.Hubs
             }
         }
 
-        public async Task Turn(Guid gameId,int x, int y)
+        public async Task<bool> Turn(Guid gameId,int x, int y)
         {
             var players = _morpionManager.GetMorpionPlayers(gameId);
             var player = players.FirstOrDefault(x => x.ClientId == Context.ConnectionId);
             var opponent = players.FirstOrDefault(x => x != player);
-            if (_morpionManager.PlayerTurn(gameId,player,x,y))
+            var value = false;
+            if (_morpionManager.PlayerTurn(gameId, player, x, y))
             {
                 await Clients.Clients(players.Select(x => x.ClientId)).SendAsync(MorpionMessageHelper.grille, _morpionManager.GetGrille(gameId));
                 if (!_morpionManager.IsGameOver(gameId))
@@ -94,12 +95,14 @@ namespace signalrtest.Hubs
                     await Clients.Clients(players.Select(x => x.ClientId)).SendAsync(MorpionMessageHelper.winner, _morpionManager.WinnerOfTheGame(gameId).Username);
                     _morpionManager.DeleteGame(gameId);
                 }
+                value = true;
             }
             else
             {
                 await Clients.Client(player.ClientId).SendAsync(MorpionMessageHelper.gameState, MorpionHelper.GameState.Play);
                 await Clients.Client(player.ClientId).SendAsync(MorpionMessageHelper.error, $"You can't play in {x}:{y}");
             }
+            return value;
         }
     }
 }

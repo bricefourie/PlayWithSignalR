@@ -33,5 +33,28 @@ namespace MorpionClientV2
                 }
             });
         }
+        public void AddError(string message)
+        {
+            _verticalStackPanel.Add(new WrapPanel
+            {
+                Content = new HorizontalStackPanel
+                {
+                    Children = new[]
+        {
+                        new TextBlock {Text = $"[{DateTime.Now.ToLongTimeString()}]", Color = new Color(200,20,20)},
+                        new TextBlock {Text = $"[Error]", Color = new Color(200,20,20)},
+                        new TextBlock {Text = message, Color = new Color(200,20,20)}
+                    }
+                }
+            });
+        }
+        public void Clear()
+        {
+            var childrens = _verticalStackPanel.Children.ToList();
+            foreach (var item in childrens)
+            {
+                _verticalStackPanel.Remove(item);
+            }
+        }
     }
 }

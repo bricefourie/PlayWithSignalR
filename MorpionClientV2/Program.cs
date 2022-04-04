@@ -1,5 +1,5 @@
 ﻿using System;
-using Microsoft.AspNetCore.SignalR.Protocol;
+using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
 using ConsoleGUI.Controls;
 using ConsoleGUI.Data;
@@ -11,6 +11,7 @@ using System.Threading;
 using ConsoleGUI.Api;
 using MorpionClientV2.Managers;
 using System.Threading.Tasks;
+using MorpionClientV2.Helpers;
 
 namespace MorpionClientV2
 {
@@ -21,14 +22,7 @@ namespace MorpionClientV2
             var morpionManager = new MorpionManager();
             var textBox = new TextBox();
             var mainConsole = new LogPanel();
-            var tabPanel = new TabPanel();
-            var board = new Board();
-            tabPanel.AddTab("Game", new Box()
-            {
-                HorizontalContentPlacement = Box.HorizontalPlacement.Center,
-                VerticalContentPlacement = Box.VerticalPlacement.Center,
-                Content = new Board()
-            });
+            var board = new Board(morpionManager);
             var dockPanel = new DockPanel
             {
                 Placement = DockPanel.DockedControlPlacement.Top,
@@ -91,23 +85,24 @@ namespace MorpionClientV2
                 }
             };
 
-            var input = new IInputListener[]
-            {
-                board,
-                new InputController(textBox,mainConsole,"Anonymous"),
-                textBox
-            };
-
-            await morpionManager.HubConnection.StartAsync();
             ConsoleManager.Setup();
             ConsoleManager.Resize(new Size(150, 40));
             ConsoleManager.Content = dockPanel;
+
+            var input = new IInputListener[]
+            {
+                board,
+                new InputController(textBox,mainConsole,"Anonymous",morpionManager),
+                textBox
+            };
+            morpionManager.HubConnection.On<string>(MorpionMessageHelper.error, (error) => mainConsole.AddError(error));
+            morpionManager.HubConnection.On<string>(MorpionMessageHelper.winner, (winner) => mainConsole.Add(winner, "Server"));
+            await morpionManager.HubConnection.StartAsync();
             for (int i = 0; ; i++)
             {
                 Thread.Sleep(10);
                 ConsoleManager.ReadInput(input);
                 ConsoleManager.AdjustBufferSize();
-                ConsoleManager.Content.Context.Redraw(dockPanel);
             }
 
         }
