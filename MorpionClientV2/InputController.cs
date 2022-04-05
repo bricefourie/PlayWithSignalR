@@ -26,11 +26,6 @@ namespace MorpionClientV2
             _morpionManager = morpionManager;
         }
 
-        public void ChangeUsername(string username)
-        {
-            _username = username;
-        }
-
         public async void OnInput(InputEvent inputEvent)
         {
             if (inputEvent.Key.Key != ConsoleKey.Enter) return;
@@ -39,6 +34,10 @@ namespace MorpionClientV2
             {
                 string[] command = _textBox.Text.Trim('/').Split(' ');
                 await CommandManager(command[0], command.Skip(1).ToArray());
+            }
+            else
+            {
+                await _morpionManager.Chat(_textBox.Text);
             }
             _textBox.Text = string.Empty;
             inputEvent.Handled = true;
@@ -56,9 +55,12 @@ namespace MorpionClientV2
                 case CommandHelper.Register:
                     if (args != null && args.Any())
                     {
-                        //Register here
                         _logPanel.Add($"Send register as {args[0]}", "Console");
-                        await _morpionManager.Register(args[0]);
+                        if(await _morpionManager.Register(args[0]))
+                        {
+                            _username = args[0];
+                        }
+
                     }
                     break;
                 case CommandHelper.Join:

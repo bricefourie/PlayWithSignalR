@@ -25,22 +25,32 @@ namespace signalrtest.Hubs
 
         public override Task OnDisconnectedAsync(Exception exception)
         {
-            _logger.LogInformation("{player} disconnected", MorpionPlayerHandler.Players.FirstOrDefault(x => x.ClientId == Context.ConnectionId).Username);
-            MorpionPlayerHandler.Players.RemoveWhere(x => x.ClientId == Context.ConnectionId);
+            if (MorpionPlayerHandler.Players.Any(x => x.ClientId == Context.ConnectionId))
+            {
+                _logger.LogInformation("{player} disconnected", MorpionPlayerHandler.Players.FirstOrDefault(x => x.ClientId == Context.ConnectionId).Username);
+                MorpionPlayerHandler.Players.RemoveWhere(x => x.ClientId == Context.ConnectionId);
+            }
             return base.OnDisconnectedAsync(exception);
         }
-        public async Task Register(string username)
+        public override async Task OnConnectedAsync()
+        {
+            await Clients.Client(Context.ConnectionId).SendAsync(MorpionMessageHelper.info, "Please register with /register username");
+        }
+        public async Task<bool> Register(string username)
         {
             if (!MorpionPlayerHandler.Players.Any(x => x.ClientId == Context.ConnectionId))
             {
                 MorpionPlayerHandler.Players.Add(new MorpionPlayer(Context.ConnectionId, username));
-                await Clients.Client(Context.ConnectionId).SendAsync(MorpionMessageHelper.register, true);
                 _logger.LogInformation("New challenger come in the ring : {0}", username);
+                await Clients.Client(Context.ConnectionId).SendAsync(MorpionMessageHelper.info, $"Registered as {username}");
+                return true;
             }
             else
             {
-                await Clients.Client(Context.ConnectionId).SendAsync(MorpionMessageHelper.register, false);
-                _logger.LogError("Registration failed, already exist {0}",MorpionPlayerHandler.Players.FirstOrDefault(x => x.ClientId == Context.ConnectionId).Username);
+                _logger.LogError("Registration failed, already exist {0}", MorpionPlayerHandler.Players.FirstOrDefault(x => x.ClientId == Context.ConnectionId).Username);
+                await Clients.Client(Context.ConnectionId).SendAsync(MorpionMessageHelper.error
+                    , $"You are already registered as {MorpionPlayerHandler.Players.FirstOrDefault(x => x.ClientId == Context.ConnectionId).Username}");
+                return false;
             }
         }
         public async Task Join()
@@ -52,8 +62,8 @@ namespace signalrtest.Hubs
             }
             else
             {
-                var gameId =_morpionManager.JoinAGame(player);
-                if(gameId.Equals(Guid.Empty))
+                var gameId = _morpionManager.JoinAGame(player);
+                if (gameId.Equals(Guid.Empty))
                 {
                     gameId = _morpionManager.NewMorpionGame(player);
                     await Clients.Client(player.ClientId).SendAsync(MorpionMessageHelper.gameId, gameId);
@@ -64,18 +74,18 @@ namespace signalrtest.Hubs
                 {
                     var players = _morpionManager.GetMorpionPlayers(gameId);
                     await Clients.Client(player.ClientId).SendAsync(MorpionMessageHelper.gameId, gameId);
-                    await Clients.Client(players[0].ClientId).SendAsync(MorpionMessageHelper.playerToken,MorpionHelper.PLAYER1TOKEN);
-                    await Clients.Client(players[1].ClientId).SendAsync(MorpionMessageHelper.playerToken,MorpionHelper.PLAYER2TOKEN);
+                    await Clients.Client(players[0].ClientId).SendAsync(MorpionMessageHelper.playerToken, MorpionHelper.PLAYER1TOKEN);
+                    await Clients.Client(players[1].ClientId).SendAsync(MorpionMessageHelper.playerToken, MorpionHelper.PLAYER2TOKEN);
                     await Clients.Clients(players.Select(x => x.ClientId)).SendAsync(MorpionMessageHelper.grille, _morpionManager.GetGrille(gameId));
                     await Clients.Client(players[0].ClientId).SendAsync(MorpionMessageHelper.gameState, MorpionHelper.GameState.Play);
                     await Clients.Client(player.ClientId).SendAsync(MorpionMessageHelper.gameState, MorpionHelper.GameState.WaitOpponent);
-                    _logger.LogInformation("A Game begin, gameId : {gameId} with Player1 : {player1} and Player2: {player2}",gameId,players[0].Username,players[1].Username);
+                    _logger.LogInformation("A Game begin, gameId : {gameId} with Player1 : {player1} and Player2: {player2}", gameId, players[0].Username, players[1].Username);
                 }
 
             }
         }
 
-        public async Task<bool> Turn(Guid gameId,int x, int y)
+        public async Task<bool> Turn(Guid gameId, int x, int y)
         {
             var players = _morpionManager.GetMorpionPlayers(gameId);
             var player = players.FirstOrDefault(x => x.ClientId == Context.ConnectionId);
@@ -92,7 +102,7 @@ namespace signalrtest.Hubs
                 else
                 {
                     await Clients.Clients(players.Select(x => x.ClientId)).SendAsync(MorpionMessageHelper.gameState, MorpionHelper.GameState.End);
-                    await Clients.Clients(players.Select(x => x.ClientId)).SendAsync(MorpionMessageHelper.winner, _morpionManager.WinnerOfTheGame(gameId).Username);
+                    await Clients.Clients(players.Select(x => x.ClientId)).SendAsync(MorpionMessageHelper.winner, _morpionManager.WinnerOfTheGame(gameId) is null ? "Draw" : _morpionManager.WinnerOfTheGame(gameId).Username );
                     _morpionManager.DeleteGame(gameId);
                 }
                 value = true;
@@ -103,6 +113,19 @@ namespace signalrtest.Hubs
                 await Clients.Client(player.ClientId).SendAsync(MorpionMessageHelper.error, $"You can't play in {x}:{y}");
             }
             return value;
+        }
+
+        public async Task Chat(string message)
+        {
+            if (MorpionPlayerHandler.Players.Any(x => x.ClientId == Context.ConnectionId))
+            {
+                var player = MorpionPlayerHandler.Players.First(x => x.ClientId == Context.ConnectionId);
+                await Clients.AllExcept(player.ClientId).SendAsync(MorpionMessageHelper.chat, player.Username, message);
+            }
+            else
+            {
+                await Clients.Client(Context.ConnectionId).SendAsync(MorpionMessageHelper.error, $"You must register before with /register username");
+            }
         }
     }
 }

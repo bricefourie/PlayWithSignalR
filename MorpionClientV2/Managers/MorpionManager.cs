@@ -25,9 +25,9 @@ namespace MorpionClientV2.Managers
                 .Build();
         }
 
-        public async Task Register(string username)
+        public async Task<bool> Register(string username)
         {
-            await _connection.SendAsync(MorpionMessageHelper.register, username);
+            return await _connection.InvokeAsync<bool>(MorpionMessageHelper.register, username);
         }
         public async Task Join()
         {
@@ -36,6 +36,10 @@ namespace MorpionClientV2.Managers
         public async Task<bool> Turn(Guid gameId,int x, int y)
         {
             return await _connection.InvokeAsync<bool>(MorpionMessageHelper.turn, gameId, x, y);
+        }
+        public async Task Chat(string message)
+        {
+            await _connection.SendAsync(MorpionMessageHelper.chat, message);
         }
     }
 }

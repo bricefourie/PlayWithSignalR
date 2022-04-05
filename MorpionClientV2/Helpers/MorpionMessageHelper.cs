@@ -17,5 +17,7 @@ namespace MorpionClientV2.Helpers
         public const string playerToken = "playerToken";
         public const string grille = "grille";
         public const string winner = "winner";
+        public const string info = "info";
+        public const string chat = "chat";
     }
 }

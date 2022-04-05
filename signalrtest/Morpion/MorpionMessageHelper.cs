@@ -15,5 +15,7 @@ namespace signalrtest.Morpion
         public const string playerToken = "playerToken";
         public const string grille = "grille";
         public const string winner = "winner";
+        public const string info = "info";
+        public const string chat = "chat";
     }
 }
