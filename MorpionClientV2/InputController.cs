@@ -51,6 +51,7 @@ namespace MorpionClientV2
                     _logPanel.Add($"/{CommandHelper.Register} : register your username to the server", "Console");
                     _logPanel.Add($"/{CommandHelper.Join} : join or create a game", "Console");
                     _logPanel.Add($"/{CommandHelper.Help} : show this help", "Console");
+                    _logPanel.Add("In game, use Arrow to select your cell, and TAB to send your choice", "Console");
                     break;
                 case CommandHelper.Register:
                     if (args != null && args.Any())

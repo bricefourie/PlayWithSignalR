@@ -99,6 +99,7 @@ namespace MorpionClientV2
             morpionManager.HubConnection.On<string>(MorpionMessageHelper.winner, (winner) => mainConsole.Add(winner, "Server"));
             morpionManager.HubConnection.On<string>(MorpionMessageHelper.info, (info) => mainConsole.Add(info, "Server"));
             morpionManager.HubConnection.On<string,string>(MorpionMessageHelper.chat, (username,message) => mainConsole.Add(message, username));
+            morpionManager.HubConnection.On<int>(MorpionMessageHelper.gameState, (gameState) => { mainConsole.Add(MorpionMessageHelper.GameStateMessage(gameState), "Console"); });
             await morpionManager.HubConnection.StartAsync();
             for (int i = 0; ; i++)
             {
