@@ -7,6 +7,7 @@ namespace signalrtest.Morpion
 {
     public static class MorpionMessageHelper
     {
+        public const string turn = "Turn";
         public const string register = "register";
         public const string error = "error";
         public const string gameId = "gameId";
@@ -14,5 +15,7 @@ namespace signalrtest.Morpion
         public const string playerToken = "playerToken";
         public const string grille = "grille";
         public const string winner = "winner";
+        public const string info = "info";
+        public const string chat = "chat";
     }
 }
