@@ -17,6 +17,7 @@ namespace signalrtest.Morpion
         bool IsGameOver(Guid GameId);
         string[,] GetGrille(Guid GameId);
         bool DeleteGame(Guid GameId);
+        Dictionary<Guid, List<MorpionPlayer>> GetAllGames();
 
     }
     public class MorpionManager : IMorpionManager
@@ -29,8 +30,8 @@ namespace signalrtest.Morpion
 
         public Guid JoinAGame(MorpionPlayer Player)
         {
-            var availableGame =_morpionGames.FirstOrDefault(x => x.Value.Player2 is null);
-            if(!availableGame.Equals(default(KeyValuePair<Guid,MorpionGame>)))
+            var availableGame = _morpionGames.FirstOrDefault(x => x.Value.Player2 is null);
+            if (!availableGame.Equals(default(KeyValuePair<Guid, MorpionGame>)))
             {
                 availableGame.Value.Player2 = Player;
                 return availableGame.Key;
@@ -61,7 +62,7 @@ namespace signalrtest.Morpion
 
         public bool PlayerTurn(Guid GameId, MorpionPlayer Player, int x, int y)
         {
-            if(_morpionGames.TryGetValue(GameId,out MorpionGame value))
+            if (_morpionGames.TryGetValue(GameId, out MorpionGame value))
             {
 
                 return value.Morpion.SetToken(x, y, GetPlayerIndex(value, Player));
@@ -71,11 +72,11 @@ namespace signalrtest.Morpion
 
         private int GetPlayerIndex(MorpionGame morpionGame, MorpionPlayer player)
         {
-            if(morpionGame.Player1.ClientId == player.ClientId)
+            if (morpionGame.Player1.ClientId == player.ClientId)
             {
                 return 1;
             }
-            if(morpionGame.Player2.ClientId == player.ClientId)
+            if (morpionGame.Player2.ClientId == player.ClientId)
             {
                 return 2;
             }
@@ -84,7 +85,7 @@ namespace signalrtest.Morpion
 
         public MorpionPlayer WinnerOfTheGame(Guid GameId)
         {
-            if(_morpionGames.TryGetValue(GameId, out MorpionGame value))
+            if (_morpionGames.TryGetValue(GameId, out MorpionGame value))
             {
                 switch (value.Morpion.Winner())
                 {
@@ -113,7 +114,7 @@ namespace signalrtest.Morpion
 
         public bool IsGameOver(Guid GameId)
         {
-            if(_morpionGames.TryGetValue(GameId,out MorpionGame game))
+            if (_morpionGames.TryGetValue(GameId, out MorpionGame game))
             {
                 return game.Morpion.IsGameOver();
             }
@@ -132,6 +133,16 @@ namespace signalrtest.Morpion
         public bool DeleteGame(Guid GameId)
         {
             return _morpionGames.TryRemove(GameId, out var morpionGame);
+        }
+
+        public Dictionary<Guid, List<MorpionPlayer>> GetAllGames()
+        {
+            Dictionary<Guid, List<MorpionPlayer>> result = new Dictionary<Guid, List<MorpionPlayer>>();
+            foreach (var game in _morpionGames)
+            {
+                result.Add(game.Key, new List<MorpionPlayer> { game.Value.Player1, game.Value.Player2 });
+            }
+            return result;
         }
     }
     class MorpionGame

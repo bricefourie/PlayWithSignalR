@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.AspNetCore.SignalR.Protocol;
 using Microsoft.Extensions.DependencyInjection;
 using MorpionClientV2.Helpers;
+using MorpionClientV2.Objects;
 
 namespace MorpionClientV2.Managers
 {
@@ -40,6 +41,14 @@ namespace MorpionClientV2.Managers
         public async Task Chat(string message)
         {
             await _connection.SendAsync(MorpionMessageHelper.chat, message);
+        }
+        public async Task<Dictionary<Guid,List<MorpionPlayer>>> Games()
+        {
+            return await _connection.InvokeAsync<Dictionary<Guid, List<MorpionPlayer>>>(MorpionMessageHelper.games);
+        }
+        public async Task<bool> Spectate(Guid gameId)
+        {
+            return await _connection.InvokeAsync<bool>(MorpionMessageHelper.spectate, gameId);
         }
     }
 }

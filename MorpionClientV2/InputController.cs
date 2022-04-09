@@ -3,6 +3,7 @@ using ConsoleGUI.Input;
 using Microsoft.AspNetCore.SignalR.Client;
 using MorpionClientV2.Helpers;
 using MorpionClientV2.Managers;
+using MorpionClientV2.Objects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -57,7 +58,7 @@ namespace MorpionClientV2
                     if (args != null && args.Any())
                     {
                         _logPanel.Add($"Send register as {args[0]}", "Console");
-                        if(await _morpionManager.Register(args[0]))
+                        if (await _morpionManager.Register(args[0]))
                         {
                             _username = args[0];
                         }
@@ -69,6 +70,23 @@ namespace MorpionClientV2
                     break;
                 case CommandHelper.Clear:
                     _logPanel.Clear();
+                    break;
+                case CommandHelper.Games:
+                    var games = await _morpionManager.Games();
+                    foreach (var game in games)
+                    {
+                        _logPanel.Add($"{game.Key} : {game.Value.ElementAt(0).Username} vs {game.Value.ElementAt(1).Username}", "Server");
+                    }
+                    break;
+                case CommandHelper.Spectate:
+                    if (Guid.TryParse(args[0], out var gameId) && await _morpionManager.Spectate(gameId))
+                    {
+                        _logPanel.Add($"You spectate the game {gameId}", "Server");
+                    }
+                    else
+                    {
+                        _logPanel.AddError("GameId not valid");
+                    }
                     break;
                 default:
                     break;

@@ -12,5 +12,7 @@ namespace MorpionClientV2.Helpers
         public const string Join = "join";
         public const string Help = "help";
         public const string Clear = "clear";
+        public const string Games = "games";
+        public const string Spectate = "spectate";
     }
 }

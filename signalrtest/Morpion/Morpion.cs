@@ -123,7 +123,7 @@ namespace signalrtest.Morpion
                 case PLAYER1TOKEN:
                     return 1;
                 case PLAYER2TOKEN:
-                    return 1;
+                    return 2;
                 default:
                     return 0;
             }

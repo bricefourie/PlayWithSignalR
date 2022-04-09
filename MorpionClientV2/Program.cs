@@ -43,8 +43,8 @@ namespace MorpionClientV2
                                     BorderStyle = BorderStyle.Double.WithColor(new Color(50, 60, 70)),
                                     Content = new Boundary
                                     {
-                                        MinWidth = 50,
-                                        MaxWidth = 50,
+                                        MinWidth = 55,
+                                        MaxWidth = 55,
                                         Content = new DockPanel
                                         {
                                             Placement = DockPanel.DockedControlPlacement.Bottom,
@@ -107,7 +107,6 @@ namespace MorpionClientV2
                 ConsoleManager.ReadInput(input);
                 ConsoleManager.AdjustBufferSize();
             }
-
         }
 
     }

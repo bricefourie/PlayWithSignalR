@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using signalrtest.Morpion;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -11,6 +12,7 @@ namespace signalrtest.Hubs
     public static class MorpionPlayerHandler
     {
         public static HashSet<MorpionPlayer> Players = new HashSet<MorpionPlayer>();
+        public static ConcurrentDictionary<Guid, ConcurrentBag<MorpionPlayer>> SpectateGames = new ConcurrentDictionary<Guid, ConcurrentBag<MorpionPlayer>>();
     }
     public class MorpionHub : Hub
     {
@@ -94,6 +96,10 @@ namespace signalrtest.Hubs
             if (_morpionManager.PlayerTurn(gameId, player, x, y))
             {
                 await Clients.Clients(players.Select(x => x.ClientId)).SendAsync(MorpionMessageHelper.grille, _morpionManager.GetGrille(gameId));
+                if (MorpionPlayerHandler.SpectateGames.TryGetValue(gameId, out var spectators))
+                {
+                    await Clients.Clients(spectators.Select(x => x.ClientId)).SendAsync(MorpionMessageHelper.grille, _morpionManager.GetGrille(gameId));
+                }
                 if (!_morpionManager.IsGameOver(gameId))
                 {
                     await Clients.Client(Context.ConnectionId).SendAsync(MorpionMessageHelper.gameState, MorpionHelper.GameState.WaitOpponent);
@@ -102,7 +108,12 @@ namespace signalrtest.Hubs
                 else
                 {
                     await Clients.Clients(players.Select(x => x.ClientId)).SendAsync(MorpionMessageHelper.gameState, MorpionHelper.GameState.End);
-                    await Clients.Clients(players.Select(x => x.ClientId)).SendAsync(MorpionMessageHelper.winner, _morpionManager.WinnerOfTheGame(gameId) is null ? "Draw" : _morpionManager.WinnerOfTheGame(gameId).Username );
+                    await Clients.Clients(players.Select(x => x.ClientId)).SendAsync(MorpionMessageHelper.winner, _morpionManager.WinnerOfTheGame(gameId) is null ? "Draw" : _morpionManager.WinnerOfTheGame(gameId).Username);
+                    if (spectators.Any())
+                    {
+                        await Clients.Clients(spectators.Select(x => x.ClientId)).SendAsync(MorpionMessageHelper.winner, _morpionManager.WinnerOfTheGame(gameId) is null ? "Draw" : _morpionManager.WinnerOfTheGame(gameId).Username);
+                        MorpionPlayerHandler.SpectateGames.TryRemove(gameId, out var spect);
+                    }
                     _morpionManager.DeleteGame(gameId);
                 }
                 value = true;
@@ -125,6 +136,32 @@ namespace signalrtest.Hubs
             else
             {
                 await Clients.Client(Context.ConnectionId).SendAsync(MorpionMessageHelper.error, $"You must register before with /register username");
+            }
+        }
+
+        public Dictionary<Guid,List<MorpionPlayer>> Games()
+        {
+            return _morpionManager.GetAllGames();
+        }
+
+        public async Task<bool> Spectate(Guid gameId)
+        {
+            var spectator = MorpionPlayerHandler.Players.First(x => x.ClientId == Context.ConnectionId);
+            if(!MorpionPlayerHandler.SpectateGames.ContainsKey(gameId))
+            {
+                var spectators = new ConcurrentBag<MorpionPlayer>();
+                spectators.Add(spectator);
+                MorpionPlayerHandler.SpectateGames.TryAdd(gameId, spectators);
+                return true;
+            }
+            else
+            {
+                if(MorpionPlayerHandler.SpectateGames.TryGetValue(gameId, out var spectatedGame))
+                {
+                    spectatedGame.Add(spectator);
+                    await Clients.Client(Context.ConnectionId).SendAsync(MorpionMessageHelper.grille, _morpionManager.GetGrille(gameId));
+                }
+                return false;
             }
         }
     }

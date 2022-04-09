@@ -19,6 +19,8 @@ namespace MorpionClientV2.Helpers
         public const string winner = "winner";
         public const string info = "info";
         public const string chat = "chat";
+        public const string games = "games";
+        public const string spectate = "Spectate";
 
         public static string GameStateMessage(int state)
         {
